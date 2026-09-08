@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/*
+ * DESIGN CONSTITUTION — PHASE 1 TOKENS
+ * Royal library × intelligent systems laboratory.
+ * Palette, type and rhythm live here. Nothing hardcodes these values elsewhere.
+ */
+@theme {
+  /* ── Color system ─────────────────────────────── */
+  --color-midnight: #090b10; /* primary dark */
+  --color-royal: #101522; /* secondary dark — Royal Navy */
+  --color-ivory: #f3efe6; /* primary light — Warm Ivory */
+  --color-paper: #e8e0d1; /* secondary light — Antique Paper */
+  --color-emerald-imperial: #18b884; /* Imperial Emerald */
+  --color-sapphire: #4169e1; /* Royal Sapphire */
+  --color-gold: #c6a15b; /* Muted Antique Gold — restrained use only */
+  --color-violet-electric: #8168ff; /* optional highlight */
+
+  /* ── Typography families ──────────────────────── */
+  --font-serif: var(--font-instrument), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-inter), "Manrope", system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+
+  /* ── Motion rhythm ────────────────────────────── */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-gesture: 220ms;
+  --duration-scene: 650ms;
+}
+
+/* ── Base ─────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Anchored sections clear the fixed floating nav. */
+section[id] {
+  scroll-margin-top: 5.5rem;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-midnight);
+  color: var(--color-ivory);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-emerald-imperial);
+  color: var(--color-midnight);
+}
+
+/* Visible focus everywhere — accessibility is not optional. */
+:focus-visible {
+  outline: 1px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* ── Signature hairlines & classical details ──────── */
+@utility hairline-gold {
+  border: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
+}
+
+@utility rule-gold {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 45%, transparent),
+    transparent
+  );
+}
+
+/* Eyebrow label: tiny tracked-out monospace section marker */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ── Reduced motion ───────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
