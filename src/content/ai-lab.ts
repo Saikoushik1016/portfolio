@@ -14,6 +14,8 @@ export type LabItem = {
   flow: string[];
   insight: string;
   interactive: boolean;
+  /** Optional public artifact backing this exploration. */
+  artifact?: { label: string; url: string; note: string };
 };
 
 export const LAB: LabItem[] = [
@@ -46,6 +48,11 @@ export const LAB: LabItem[] = [
     insight:
       "An LLM call without a trace is a coin flip with a bill attached. Prompts, tool calls, token counts and latencies belong in the same view as your service metrics — that is why systems like Langfuse exist, and why the deployment pipeline in System 01 traces every reasoning step.",
     interactive: false,
+    artifact: {
+      label: "READ THE RESEARCH — AI-DRIVEN CLOUD LOG FORENSICS",
+      url: "https://github.com/Saikoushik1016/Cyber_Forensics_Research_Paper",
+      note: "RESEARCH NOTEBOOK · JUPYTER · PUBLIC REPOSITORY",
+    },
   },
   {
     id: "hitl",

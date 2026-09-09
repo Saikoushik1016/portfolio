@@ -6,6 +6,8 @@ export const LINKS = {
   email: "saikoushikskp@gmail.com",
   emailHref: "mailto:saikoushikskp@gmail.com",
   github: "https://github.com/saikoushik1016",
+  /** Canonical owner used for GitHub API calls. */
+  githubOwner: "Saikoushik1016",
   linkedin: "https://www.linkedin.com/in/saikoushik1016",
   /** Served from /public — the actual résumé PDF. */
   resume: "/resume.pdf",

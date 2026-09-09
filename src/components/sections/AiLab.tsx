@@ -115,6 +115,24 @@ export function AiLab() {
                 </p>
 
                 {item.interactive && <RagInspector />}
+
+                {item.artifact && (
+                  <div className="mt-auto pt-6">
+                    <a
+                      href={item.artifact.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group inline-flex flex-col gap-1"
+                    >
+                      <span className="font-mono text-[10px] tracking-[0.2em] text-gold underline-offset-4 transition-colors duration-gesture group-hover:text-emerald-imperial group-hover:underline">
+                        {item.artifact.label} ↗
+                      </span>
+                      <span className="font-mono text-[9px] tracking-[0.18em] text-ivory/35">
+                        {item.artifact.note}
+                      </span>
+                    </a>
+                  </div>
+                )}
               </article>
             </Reveal>
           ))}

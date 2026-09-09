@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { Section, Container, Eyebrow } from "@/components/layout/Section";
 import { Reveal } from "@/components/motion/Reveal";
 import { TRANSFER_DEMO, LEDGER_STEPS, LEDGER_STACK } from "@/content/ledger";
-import { LINKS } from "@/content/links";
+import { REPOS } from "@/content/repos";
 import { cn } from "@/lib/utils";
 
 function useInViewOnce<T extends HTMLElement>() {
@@ -255,12 +255,12 @@ export function LedgerSystem() {
               ))}
             </ul>
             <a
-              href={LINKS.github}
+              href={REPOS.bankingCore.url}
               target="_blank"
               rel="noopener noreferrer"
               className="group mt-8 inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-gold transition-colors duration-gesture hover:text-midnight"
             >
-              VIEW SOURCE ↗
+              VIEW SOURCE — BANKING_SYSTEM_CORE ↗
               <span aria-hidden className="transition-transform duration-gesture group-hover:translate-x-1">
                 →
               </span>

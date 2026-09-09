@@ -2,13 +2,22 @@
 
 /**
  * SYSTEM 01 — AI DEPLOYMENT INTELLIGENCE case study.
- * Signature interaction № 2: simulated PR risk pipeline.
+ * Signature interaction № 2 — two honest modes:
+ *
+ *  • LIVE  — fetches a real pull request from the public GitHub API
+ *            (changeguard-ai PR #1) and scores it with deterministic,
+ *            transparent heuristics. No LLM is called; the analysis
+ *            *shape* is demonstrated, labeled as such.
+ *  • DEMO  — the simulated PR (PR #184) showing what the production
+ *            LLM pipeline returns. Explicitly labeled DEMO DATA.
+ *
  * Emerald / Midnight / futuristic atmosphere.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Section, Container, Eyebrow } from "@/components/layout/Section";
 import { Reveal } from "@/components/motion/Reveal";
+import { RepoStatPanel } from "@/components/sections/RepoStatPanel";
 import {
   PIPELINE,
   PR_DEMO,
@@ -16,23 +25,32 @@ import {
   STACK,
   IMPACT,
 } from "@/content/deployment";
+import { REPOS } from "@/content/repos";
+import {
+  fetchRealPr,
+  analyzeRealPr,
+  LIVE_PR,
+  type RealPrData,
+  type StageOutput,
+} from "@/lib/live-analysis";
 import { cn } from "@/lib/utils";
 
 const STAGE_MS = 900;
-
-const SPINE = [
-  "Problem",
-  "Scale",
-  "Architecture",
-  "Decisions",
-  "Impact",
-  "Technology",
-] as const;
+type Mode = "live" | "demo";
 
 export function DeploymentIntelligence() {
+  const [mode, setMode] = useState<Mode>("live");
   const [stageIndex, setStageIndex] = useState(-1); // -1 = idle
   const [running, setRunning] = useState(false);
+  const [livePr, setLivePr] = useState<RealPrData | null>(null);
+  const [liveResult, setLiveResult] = useState<StageOutput | null>(null);
+  const [liveError, setLiveError] = useState<string | null>(null);
   const timers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+  const reduced = useRef(false);
+
+  useEffect(() => {
+    reduced.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -41,21 +59,95 @@ export function DeploymentIntelligence() {
 
   useEffect(() => clearTimers, []);
 
-  const runAnalysis = useCallback(() => {
+  /** Fan the eight stages out over time; reduced motion → instant. */
+  const playStages = useCallback((count: number, onDone: () => void) => {
     clearTimers();
-    setStageIndex(-1);
-    setRunning(true);
-    PIPELINE.forEach((_, i) => {
+    if (reduced.current) {
+      setStageIndex(count - 1);
+      onDone();
+      return;
+    }
+    for (let i = 0; i < count; i++) {
       timers.current.push(
         setTimeout(() => {
           setStageIndex(i);
-          if (i === PIPELINE.length - 1) setRunning(false);
+          if (i === count - 1) onDone();
         }, STAGE_MS * (i + 1))
       );
-    });
+    }
   }, []);
 
+  /** DEMO MODE — simulated PR #184 with the production-shaped outputs. */
+  const runDemo = useCallback(() => {
+    setMode("demo");
+    setLiveError(null);
+    setStageIndex(-1);
+    setRunning(true);
+    playStages(PIPELINE.length, () => setRunning(false));
+  }, [playStages]);
+
+  /** LIVE MODE — real PR, deterministic heuristic scoring, staged reveal. */
+  const runLive = useCallback(async () => {
+    setMode("live");
+    setLiveError(null);
+    setStageIndex(-1);
+    setLiveResult(null);
+    setRunning(true);
+    try {
+      const pr = await Promise.race([
+        fetchRealPr(LIVE_PR.repo, LIVE_PR.number),
+        new Promise<never>((_, rej) =>
+          setTimeout(() => rej(new Error("timeout")), 10000)
+        ),
+      ]);
+      setLivePr(pr);
+      const result = analyzeRealPr(pr);
+      setLiveResult(result);
+      playStages(PIPELINE.length, () => setRunning(false));
+    } catch (err) {
+      // Honest failure: say why, fall back to the demo run so the
+      // visitor still sees the pipeline.
+      setLiveError(
+        err instanceof Error && err.message === "timeout"
+          ? "Live fetch timed out — showing the simulated run instead."
+          : "GitHub API unreachable from your network — showing the simulated run instead."
+      );
+      setStageIndex(-1);
+      playStages(PIPELINE.length, () => setRunning(false));
+    }
+  }, [playStages]);
+
   const complete = stageIndex >= PIPELINE.length - 1;
+  const isLive = mode === "live" && !liveError;
+  const live = isLive && liveResult ? liveResult : null;
+
+  // Per-stage output line: live uses real evidence, demo uses the script.
+  const stageOutput = (i: number) =>
+    live ? live.outputs[i] ?? "" : PIPELINE[i].output;
+
+  // Verdict data depends on mode.
+  const verdict = live
+    ? {
+        score: live.score,
+        band: live.band,
+        bandLabel: `${live.band} — DETERMINISTIC HEURISTIC ANALYSIS`,
+        factors: live.factors,
+        recommendation: live.recommendation,
+      }
+    : {
+        score: RISK_DEMO.score,
+        band: RISK_DEMO.band,
+        bandLabel: `${RISK_DEMO.band} — DEMO DATA`,
+        factors: RISK_DEMO.factors,
+        recommendation: RISK_DEMO.recommendation,
+      };
+
+  const bandColor =
+    verdict.band === "HIGH"
+      ? "text-red-400/90"
+      : verdict.band === "ELEVATED"
+        ? "text-gold"
+        : "text-emerald-imperial";
 
   return (
     <Section surface="midnight" id="system-01" className="overflow-hidden">
@@ -85,67 +177,151 @@ export function DeploymentIntelligence() {
         {/* ── Narrative spine ── */}
         <Reveal>
           <ol className="mt-12 flex flex-wrap gap-x-6 gap-y-2">
-            {SPINE.map((s, i) => (
-              <li key={s} className="flex items-center gap-6">
-                <span className="font-mono text-[10px] tracking-[0.18em] text-ivory/40">
-                  {s.toUpperCase()}
-                </span>
-                {i < SPINE.length - 1 && (
-                  <span aria-hidden className="text-gold/50">
-                    ·
+            {["Problem", "Scale", "Architecture", "Decisions", "Impact", "Technology"].map(
+              (s, i, arr) => (
+                <li key={s} className="flex items-center gap-6">
+                  <span className="font-mono text-[10px] tracking-[0.18em] text-ivory/40">
+                    {s.toUpperCase()}
                   </span>
-                )}
-              </li>
-            ))}
+                  {i < arr.length - 1 && (
+                    <span aria-hidden className="text-gold/50">
+                      ·
+                    </span>
+                  )}
+                </li>
+              )
+            )}
           </ol>
         </Reveal>
 
-        {/* ── The simulated PR — DEMO DATA ── */}
+        {/* ── The pipeline interface ── */}
         <Reveal delay={0.1}>
           <div className="hairline-gold mt-14 overflow-hidden rounded-sm bg-royal/60">
+            {/* Header strip: live PR data or demo data */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/15 px-5 py-3">
-              <div className="flex items-center gap-4 font-mono text-[11px] tracking-[0.14em]">
-                <span className="text-emerald-imperial">{PR_DEMO.id}</span>
-                <span className="text-ivory/50">{PR_DEMO.branch}</span>
-                <span className="text-emerald-imperial/80">+{PR_DEMO.additions}</span>
-                <span className="text-red-400/70">−{PR_DEMO.deletions}</span>
-              </div>
-              <span className="font-mono text-[9px] tracking-[0.22em] text-gold/80">
-                DEMO DATA
+              {isLive && livePr ? (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] tracking-[0.14em]">
+                  <span className="text-emerald-imperial">
+                    PR #{livePr.number} · {REPOS.changeguard.name}
+                  </span>
+                  <span className="text-ivory/50">
+                    {livePr.branch} → {livePr.base}
+                  </span>
+                  <span className="text-emerald-imperial/80">+{livePr.additions}</span>
+                  <span className="text-red-400/70">−{livePr.deletions}</span>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] tracking-[0.14em]">
+                  <span className="text-emerald-imperial">{PR_DEMO.id}</span>
+                  <span className="text-ivory/50">{PR_DEMO.branch}</span>
+                  <span className="text-emerald-imperial/80">+{PR_DEMO.additions}</span>
+                  <span className="text-red-400/70">−{PR_DEMO.deletions}</span>
+                </div>
+              )}
+              <span
+                className={cn(
+                  "font-mono text-[9px] tracking-[0.22em]",
+                  isLive && livePr ? "text-emerald-imperial" : "text-gold/80"
+                )}
+              >
+                {isLive && livePr ? "LIVE GITHUB DATA" : "DEMO DATA"}
               </span>
             </div>
 
             <div className="px-5 py-6">
               <p className="font-mono text-[11px] tracking-[0.14em] text-ivory/45">
-                {PR_DEMO.services} SERVICES AFFECTED · OPENED BY {PR_DEMO.author.toUpperCase()}
+                {isLive && livePr
+                  ? `OPENED BY ${livePr.author.toUpperCase()} · ${livePr.commits} COMMITS · ${livePr.changedFiles} FILES`
+                  : `${PR_DEMO.services} SERVICES AFFECTED · OPENED BY ${PR_DEMO.author.toUpperCase()}`}
               </p>
 
-              {/* Run analysis */}
-              <div className="mt-6 flex flex-wrap items-center gap-5">
+              {/* Mode toggle + run buttons */}
+              <div className="mt-6 flex flex-wrap items-center gap-4">
                 <button
                   type="button"
-                  onClick={runAnalysis}
+                  onClick={runLive}
                   disabled={running}
                   className={cn(
                     "hairline-gold px-5 py-2.5 font-mono text-[11px] tracking-[0.2em] transition-colors duration-gesture",
                     running
-                      ? "cursor-wait text-ivory/40"
-                      : "bg-emerald-imperial/10 text-emerald-imperial hover:bg-emerald-imperial/20"
+                      ? mode === "live"
+                        ? "cursor-wait text-ivory/40"
+                        : "text-ivory/45"
+                      : mode === "live"
+                        ? "bg-emerald-imperial/15 text-emerald-imperial hover:bg-emerald-imperial/25"
+                        : "text-emerald-imperial/70 hover:bg-emerald-imperial/10"
                   )}
                 >
-                  {running ? "ANALYZING…" : complete ? "RE-RUN ANALYSIS" : "RUN ANALYSIS"}
+                  {running && mode === "live"
+                    ? "ANALYZING LIVE PR…"
+                    : mode === "live" && complete
+                      ? "RE-RUN ON LIVE PR"
+                      : "RUN ON A REAL PULL REQUEST"}
+                </button>
+                <button
+                  type="button"
+                  onClick={runDemo}
+                  disabled={running}
+                  className={cn(
+                    "font-mono text-[11px] tracking-[0.2em] transition-colors duration-gesture",
+                    running
+                      ? mode === "demo"
+                        ? "cursor-wait text-ivory/40"
+                        : "text-ivory/45"
+                      : mode === "demo"
+                        ? "text-gold hover:text-gold/80"
+                        : "text-ivory/45 hover:text-gold"
+                  )}
+                >
+                  {running && mode === "demo"
+                    ? "ANALYZING…"
+                    : mode === "demo" && complete
+                      ? "RE-RUN DEMO"
+                      : "RUN DEMO MODE"}
                 </button>
                 {!complete && !running && (
                   <span className="font-mono text-[10px] tracking-[0.16em] text-ivory/35">
-                    SIMULATION — NO PRODUCTION SYSTEM IS CALLED
+                    {mode === "live"
+                      ? "FETCHES A PUBLIC PR — DETERMINISTIC ANALYSIS, NO LLM CALLED"
+                      : "SIMULATION — NO PRODUCTION SYSTEM IS CALLED"}
                   </span>
                 )}
               </div>
+
+              {/* Live fetch status / honest failure notice */}
+              {mode === "live" && (running || liveError) && (
+                <p
+                  className={cn(
+                    "mt-4 font-mono text-[10px] tracking-[0.16em]",
+                    liveError ? "text-gold/80" : "text-emerald-imperial/80"
+                  )}
+                  role="status"
+                >
+                  {liveError ??
+                    (stageIndex < 0
+                      ? "○ FETCHING PULL REQUEST FROM GITHUB…"
+                      : "● LIVE PR LOADED — RUNNING PIPELINE")}
+                </p>
+              )}
+              {isLive && livePr && (
+                <p className="mt-4 font-mono text-[10px] tracking-[0.16em] text-ivory/40">
+                  SOURCE:{" "}
+                  <a
+                    href={livePr.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gold/80 underline-offset-4 transition-colors duration-gesture hover:text-gold hover:underline"
+                  >
+                    {livePr.url.replace("https://", "")} ↗
+                  </a>
+                </p>
+              )}
 
               {/* ── Pipeline stages ── */}
               <ol className="mt-8 grid gap-0 md:grid-cols-2 md:gap-x-10">
                 {PIPELINE.map((stage, i) => {
                   const done = stageIndex >= i;
+                  const output = stageOutput(i);
                   return (
                     <li
                       key={stage.id}
@@ -184,14 +360,16 @@ export function DeploymentIntelligence() {
                       >
                         {stage.detail}
                       </p>
-                      <p
-                        className={cn(
-                          "mt-2 font-mono text-[10px] tracking-[0.1em] transition-all duration-500",
-                          done ? "text-emerald-imperial/80" : "text-transparent"
-                        )}
-                      >
-                        {stage.output}
-                      </p>
+                      {output && (
+                        <p
+                          className={cn(
+                            "mt-2 font-mono text-[10px] leading-relaxed tracking-[0.1em] transition-all duration-500",
+                            done ? "text-emerald-imperial/80" : "text-transparent"
+                          )}
+                        >
+                          {output}
+                        </p>
+                      )}
                     </li>
                   );
                 })}
@@ -209,22 +387,22 @@ export function DeploymentIntelligence() {
                   <div>
                     <p className="eyebrow text-gold/80">Deployment Risk</p>
                     <p className="mt-4 font-serif text-7xl leading-none text-ivory sm:text-8xl">
-                      {RISK_DEMO.score}
+                      {verdict.score}
                       <span className="ml-2 font-mono text-sm text-ivory/40">
                         /100
                       </span>
                     </p>
-                    <p className="mt-3 font-mono text-[10px] tracking-[0.22em] text-red-400/80">
-                      {RISK_DEMO.band} — DEMO DATA
+                    <p className={cn("mt-3 font-mono text-[10px] tracking-[0.22em]", bandColor)}>
+                      {verdict.bandLabel}
                     </p>
                   </div>
                   <div>
                     <p className="eyebrow text-gold/80">Rollout Recommendation</p>
                     <p className="mt-4 max-w-xl text-sm leading-relaxed text-ivory/70">
-                      {RISK_DEMO.recommendation}
+                      {verdict.recommendation}
                     </p>
                     <dl className="mt-6 grid gap-x-10 gap-y-4 sm:grid-cols-2">
-                      {RISK_DEMO.factors.map((f) => (
+                      {verdict.factors.map((f) => (
                         <div key={f.label} className="border-l border-gold/25 pl-4">
                           <dt className="font-mono text-[10px] tracking-[0.18em] text-ivory/45">
                             {f.label.toUpperCase()} · {f.weight}
@@ -233,11 +411,23 @@ export function DeploymentIntelligence() {
                         </div>
                       ))}
                     </dl>
+                    {live && (
+                      <p className="mt-6 max-w-xl font-mono text-[9px] leading-relaxed tracking-[0.14em] text-ivory/35">
+                        LIVE MODE SCORES A REAL PULL REQUEST WITH TRANSPARENT,
+                        DETERMINISTIC RULES. THE PRODUCTION SYSTEM REASONS OVER
+                        THE SAME EVIDENCE WITH CLAUDE — SEE THE NARRATIVE BELOW.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </Reveal>
+
+        {/* ── The repository, live from GitHub ── */}
+        <Reveal delay={0.05}>
+          <RepoStatPanel repoKey="changeguard" className="mt-6" />
         </Reveal>
 
         {/* ── Engineering narrative ── */}

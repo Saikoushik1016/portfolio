@@ -1,5 +1,6 @@
 import { Section, Container, Eyebrow } from "@/components/layout/Section";
 import { Reveal } from "@/components/motion/Reveal";
+import { RepoStatPanel } from "@/components/sections/RepoStatPanel";
 
 const SYSTEMS = [
   {
@@ -84,6 +85,24 @@ export function SelectedSystems() {
             architecture, engineering decisions, impact, technology — because
             that is the order in which real systems are actually built.
           </p>
+        </Reveal>
+
+        {/* ── Open Artifacts — the public repositories, live ── */}
+        <Reveal>
+          <div className="mt-20 border-t border-gold/20 pt-10">
+            <p className="eyebrow text-gold/80">Open Artifacts</p>
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ivory/55">
+              The systems above have public source. These panels fetch live
+              from the GitHub API as this page loads — latest push, HEAD
+              commit — and fall back to build-time snapshots when offline.
+              Read the code that did the work.
+            </p>
+            <div className="mt-8 space-y-3">
+              <RepoStatPanel repoKey="changeguard" />
+              <RepoStatPanel repoKey="bankingCore" />
+              <RepoStatPanel repoKey="forensics" />
+            </div>
+          </div>
         </Reveal>
       </Container>
     </Section>
