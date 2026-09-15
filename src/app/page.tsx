@@ -1,7 +1,7 @@
 import { Navigation } from "@/components/navigation/Navigation";
 import { Section, Container } from "@/components/layout/Section";
 import { Monogram } from "@/components/brand/Monogram";
-import { SystemCanvas } from "@/components/hero/SystemCanvas";
+import { HeroField } from "@/components/hero/HeroField";
 import { Reveal } from "@/components/motion/Reveal";
 import { EngineeringProof } from "@/components/sections/EngineeringProof";
 import { SelectedSystems } from "@/components/sections/SelectedSystems";
@@ -34,15 +34,18 @@ export default function Home() {
       <Navigation />
 
       <main id="main">
-        {/* ── HERO — with the systems visualization (signature interaction № 1) ── */}
+        {/* ── HERO — with the 3D systems constellation (signature interaction № 1) ── */}
         <Section surface="midnight" className="flex min-h-[100vh] items-center overflow-hidden">
-          {/* Generative distributed-systems field — decorative, non-interactive by pointer */}
+          {/* Dimensional systems field — decorative, non-interactive by pointer */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 w-full opacity-60 sm:opacity-80 lg:w-[62%]"
+            className="pointer-events-none absolute inset-y-0 right-0 w-full opacity-70 sm:opacity-90 lg:w-[62%]"
           >
-            <SystemCanvas />
+            <HeroField />
           </div>
+          {/* Film grain over the whole hero — print texture, not render */}
+          <div aria-hidden className="grain pointer-events-none absolute inset-0" />
+
           {/* Soft vignette keeps type legible over the field */}
           <div
             aria-hidden
@@ -106,6 +109,22 @@ export default function Home() {
           {/* Quiet corner metadata — engraving-inspired linework */}
           <div className="absolute bottom-8 right-8 hidden font-mono text-[10px] tracking-[0.18em] text-ivory/35 md:block">
             41.8781° N / 87.6298° W — CHICAGO
+          </div>
+
+          {/* Drifting metadata — fragments of a request traveling the field */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
+            <span className="drift absolute left-[62%] top-[22%] font-mono text-[9px] tracking-[0.22em] text-gold/40">
+              POST /risk
+            </span>
+            <span className="drift absolute left-[78%] top-[46%] font-mono text-[9px] tracking-[0.22em] text-emerald-imperial/35" style={{ animationDelay: "-2.5s" }}>
+              302ms
+            </span>
+            <span className="drift absolute left-[58%] top-[68%] font-mono text-[9px] tracking-[0.22em] text-sapphire/40" style={{ animationDelay: "-4.5s" }}>
+              event.accepted
+            </span>
+            <span className="drift absolute left-[86%] top-[30%] font-mono text-[9px] tracking-[0.22em] text-ivory/30" style={{ animationDelay: "-6s" }}>
+              confidence 0.87
+            </span>
           </div>
 
           {/* Scroll cue */}

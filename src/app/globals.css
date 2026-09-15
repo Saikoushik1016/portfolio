@@ -56,7 +56,52 @@ body {
   outline-offset: 3px;
 }
 
+/* ── Atmosphere: film grain & drift ───────────────── */
+
+/* A whisper of texture so flat surfaces feel printed, not rendered. */
+.grain {
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Slow vertical drift for floating metadata in the hero field. */
+@keyframes drift-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+.drift {
+  animation: drift-y 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drift {
+    animation: none;
+  }
+}
+
 /* ── Signature hairlines & classical details ──────── */
+
+/* Custom scrollbar — gold on midnight, quiet. */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-midnight);
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-gold) 35%, transparent);
+  border: 3px solid var(--color-midnight);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-gold) 60%, transparent);
+}
 @utility hairline-gold {
   border: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
 }

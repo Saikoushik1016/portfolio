@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Section, Container, Eyebrow } from "@/components/layout/Section";
 import { Reveal } from "@/components/motion/Reveal";
+import { Tilt } from "@/components/motion/Tilt";
 import { RepoStatPanel } from "@/components/sections/RepoStatPanel";
 import {
   PIPELINE,
@@ -196,7 +197,8 @@ export function DeploymentIntelligence() {
 
         {/* ── The pipeline interface ── */}
         <Reveal delay={0.1}>
-          <div className="hairline-gold mt-14 overflow-hidden rounded-sm bg-royal/60">
+          <Tilt className="mt-14">
+            <div className="hairline-gold overflow-hidden rounded-sm bg-royal/60">
             {/* Header strip: live PR data or demo data */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/15 px-5 py-3">
               {isLive && livePr ? (
@@ -423,6 +425,7 @@ export function DeploymentIntelligence() {
               </div>
             </div>
           </div>
+          </Tilt>
         </Reveal>
 
         {/* ── The repository, live from GitHub ── */}

@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Section, Container, Eyebrow } from "@/components/layout/Section";
 import { Reveal } from "@/components/motion/Reveal";
+import { Tilt } from "@/components/motion/Tilt";
 import { TRANSFER_DEMO, LEDGER_STEPS, LEDGER_STACK } from "@/content/ledger";
 import { REPOS } from "@/content/repos";
 import { cn } from "@/lib/utils";
@@ -105,7 +106,8 @@ export function LedgerSystem() {
 
         {/* ── Balanced transfer demo — DEMO DATA ── */}
         <Reveal delay={0.1}>
-          <div ref={demo.ref} className="hairline-gold relative mt-14 bg-paper/70 p-6 sm:p-8">
+          <Tilt className="mt-14">
+            <div ref={demo.ref} className="hairline-gold relative bg-paper/70 p-6 sm:p-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="font-mono text-[11px] tracking-[0.16em] text-midnight/60">
                 {TRANSFER_DEMO.txn}
@@ -218,7 +220,8 @@ export function LedgerSystem() {
                 AUDIT ENTRY CREATED — {TRANSFER_DEMO.amount} MOVED, NOTHING LOST
               </p>
             </div>
-          </div>
+            </div>
+          </Tilt>
         </Reveal>
 
         {/* ── Narrative ── */}
